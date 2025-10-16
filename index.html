@@ -22,3 +22,345 @@
   <script src="script.js"></script>
 </body>
 </html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dani9ja — Demo Rewards & Daily Claims</title>
+  <meta name="description" content="Dani9ja demo site — signup, daily claims and instant credits." />
+  <meta name="theme-color" content="#067c3b" />
+
+  <style>
+    :root{
+      --bg1:#071021; --muted:#94a3b8; --accent:#06b44b; --accent-2:#ffb020;
+      --glass-border: rgba(255,255,255,0.04); --radius:16px; --max-width:1100px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;font-family:Inter,system-ui,Arial; background:
+      linear-gradient(180deg,#071021 0%, #071827 60%), radial-gradient(1000px 400px at 10% 10%, rgba(6,180,75,0.06), transparent 10%);
+      color:#e6eef6;padding:28px;display:flex;justify-content:center;min-height:100vh;
+    }
+    .wrap{width:100%;max-width:var(--max-width);display:grid;grid-template-columns:360px 1fr;gap:24px}
+    @media (max-width:960px){ .wrap{grid-template-columns:1fr;padding-bottom:40px} }
+
+    .panel{
+      border-radius:var(--radius);padding:18px;border:1px solid var(--glass-border);
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+      position:relative;overflow:hidden;
+    }
+
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#04d07a);display:flex;align-items:center;justify-content:center;color:#06210f;font-weight:800}
+    .brand-title{font-size:18px;font-weight:700}
+    .brand-sub{font-size:13px;color:var(--muted);margin-top:4px}
+    .hero-img{width:100%;height:150px;border-radius:12px;margin-top:12px;background-size:cover;background-position:center;border:1px solid var(--glass-border);box-shadow:0 8px 28px rgba(0,0,0,.45)}
+
+    .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:linear-gradient(90deg,#00391f,#066a36);color:#eafff0;font-weight:700;font-size:13px;margin-top:12px}
+
+    .muted{color:var(--muted);font-size:14px}
+    form.register{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+    input[type="text"], input[type="email"]{padding:12px;border-radius:10px;border:1px solid var(--glass-border);background:transparent;color:inherit;outline:none}
+    input:focus{box-shadow:0 8px 26px rgba(6,180,75,0.08);transform:translateY(-1px)}
+    .row{display:flex;gap:8px}
+    .btn{display:inline-flex;align-items:center;justify-content:center;padding:12px 16px;border-radius:10px;border:none;background:linear-gradient(90deg,var(--accent),#00d67d);color:#04220e;font-weight:800;cursor:pointer}
+    .btn.ghost{background:transparent;border:1px solid var(--glass-border);color:var(--muted);font-weight:700}
+    .note{background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:10px;border-radius:10px;border:1px solid var(--glass-border);font-size:13px;color:var(--muted)}
+
+    .content{display:flex;flex-direction:column;gap:14px}
+    .topbar{display:flex;gap:12px;align-items:center;justify-content:space-between}
+    .search input{padding:10px;border-radius:10px;border:1px solid var(--glass-border);background:transparent;color:inherit}
+    .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+    @media (max-width:980px){ .cards{grid-template-columns:1fr} }
+    .card{padding:14px;border-radius:12px;border:1px solid var(--glass-border);background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));box-shadow:0 8px 28px rgba(0,0,0,0.5)}
+    .big-card{grid-column:1/3;display:flex;gap:14px;align-items:center}
+    .big-card .right{width:260px}
+    .updates{display:grid;gap:10px}
+    .update{display:flex;gap:12px;align-items:center}
+    .thumb{width:72px;height:54px;border-radius:8px;background-size:cover;background-position:center;border:1px solid var(--glass-border)}
+    .dashboard{display:flex;flex-direction:column;gap:10px}
+    .balance{font-size:28px;font-weight:800;color:var(--accent-2)}
+    .claim-btn{padding:10px 14px;border-radius:10px;border:none;background:linear-gradient(90deg,#ffb020,#ff6b00);color:#08130b;font-weight:800;cursor:pointer}
+    footer.footer{color:var(--muted);font-size:13px;margin-top:8px;text-align:center}
+
+    /* animations */
+    .fade-in{animation:fadeInUp .45s ease both}
+    @keyframes fadeInUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+    /* confetti canvas */
+    #confettiCanvas{position:fixed;left:0;top:0;pointer-events:none;z-index:9999}
+    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;padding:10px 14px;border-radius:10px;background:#051412;color:#dfffe0;border:1px solid rgba(255,255,255,0.04);z-index:99999}
+  </style>
+</head>
+<body>
+  <main class="wrap" id="app">
+    <aside class="panel fade-in" aria-labelledby="brandHeading">
+      <div class="brand" id="brandHeading">
+        <div class="logo">D9</div>
+        <div>
+          <div class="brand-title">Dani9ja</div>
+          <div class="brand-sub">Prototype • Signup & daily credits</div>
+        </div>
+      </div>
+
+      <div class="hero-img" id="hero" style="background-image:url('https://images.unsplash.com/photo-1509475826633-fed577a2c71b?q=80&w=1400&auto=format&fit=crop&dpr=1');" role="img" aria-label="Hero image"></div>
+
+      <div style="display:flex;gap:8px;align-items:center;margin-top:12px;">
+        <div class="badge" title="Signup credit">🎁 Instant 200 Credits</div>
+        <div style="flex:1"></div>
+        <div class="muted">Prototype</div>
+      </div>
+
+      <form class="register" id="registerForm" aria-label="Register form">
+        <label class="muted">Full name</label>
+        <input type="text" id="name" placeholder="e.g. Dani Merry" autocomplete="name" required />
+
+        <label class="muted">Email</label>
+        <input type="email" id="email" placeholder="you@example.com" autocomplete="email" required />
+
+        <div class="row">
+          <button type="submit" class="btn" id="signupBtn">Create Account</button>
+          <button type="button" class="btn ghost" id="demoLoginBtn">Quick Demo</button>
+        </div>
+
+        <div class="note" role="status" id="registerNote">
+          This is a prototype. No real money or payments — only simulated credits stored in your browser.
+        </div>
+      </form>
+
+      <div style="margin-top:12px;display:flex;gap:8px;align-items:center;">
+        <img alt="" src="https://picsum.photos/seed/dani/48/48" width="48" height="48" style="border-radius:8px;border:1px solid var(--glass-border)">
+        <div>
+          <div style="font-weight:700">How it works</div>
+          <div class="muted" style="font-size:13px">Sign up → Receive instant credits → Claim daily credits</div>
+        </div>
+      </div>
+
+      <footer class="footer">© <span id="year"></span> Dani9ja — Prototype only</footer>
+    </aside>
+
+    <section class="content">
+      <div class="topbar fade-in">
+        <div class="search"><input id="searchInput" type="search" placeholder="Search updates or tips..." /></div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div style="text-align:right">
+            <div id="previewName" style="font-weight:700">Welcome 👋</div>
+            <small id="previewEmail" class="muted">Not signed in</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="cards fade-in">
+        <div class="card big-card" role="region" aria-labelledby="dashboardTitle">
+          <div class="left">
+            <h3 id="dashboardTitle">Dashboard • Quick Actions</h3>
+            <p class="muted">View credits, claim once per day, and see recent updates.</p>
+
+            <div class="dashboard" style="margin-top:12px;">
+              <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+                <div>
+                  <div class="muted">Account</div>
+                  <div id="accName" style="font-weight:800;font-size:18px">—</div>
+                </div>
+                <div style="min-width:160px">
+                  <div class="muted">Credits</div>
+                  <div class="balance" id="balanceVal">0</div>
+                </div>
+
+                <div style="display:flex;gap:8px">
+                  <button id="claimBtn" class="claim-btn">Claim Daily Credits</button>
+                  <button id="addFundsBtn" class="btn ghost">+ Add 500 Credits</button>
+                </div>
+              </div>
+              <div style="margin-top:8px;font-size:13px;color:var(--muted)">Last claimed: <span id="lastClaim">Never</span></div>
+            </div>
+          </div>
+
+          <div class="right">
+            <img alt="Promo" src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=800&auto=format&fit=crop&dpr=1" style="width:100%;border-radius:10px;border:1px solid var(--glass-border)">
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Latest Updates</h3>
+          <div class="updates" id="updatesList"></div>
+        </div>
+
+        <div class="card">
+          <h3>How to use</h3>
+          <p class="muted">This prototype stores credits in your browser. Use Quick Demo to try immediately, or sign up with a name & email.</p>
+          <p style="margin-top:10px"><button id="howBtn" class="btn">Show quick tour</button></p>
+        </div>
+      </div>
+
+      <div class="card fade-in" style="margin-top:12px">
+        <h3>Featured</h3>
+        <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap">
+          <article style="flex:1;min-width:220px">
+            <img alt="" src="https://picsum.photos/seed/post1/600/300" style="width:100%;height:130px;object-fit:cover;border-radius:8px;border:1px solid var(--glass-border)">
+            <h4 style="margin:10px 0 6px 0">Try daily claims</h4>
+            <p class="muted" style="font-size:13px">Collect credits and test dashboard flows.</p>
+          </article>
+          <article style="flex:1;min-width:220px">
+            <img alt="" src="https://picsum.photos/seed/post2/600/300" style="width:100%;height:130px;object-fit:cover;border-radius:8px;border:1px solid var(--glass-border)">
+            <h4 style="margin:10px 0 6px 0">Local storage basics</h4>
+            <p class="muted" style="font-size:13px">Your account & credits are saved locally for prototyping.</p>
+          </article>
+        </div>
+      </div>
+
+      <footer class="footer">Built for learning — prototype only.</footer>
+    </section>
+  </main>
+
+  <canvas id="confettiCanvas"></canvas>
+
+  <script>
+    // ---------- State & helpers ----------
+    const el = id => document.getElementById(id);
+    const stateKey = 'dani9ja_proto';
+    const state = { name:null, email:null, credits:0, lastClaim:null };
+    el('year').textContent = new Date().getFullYear();
+
+    const sampleUpdates = [
+      {title:"Daily Credits Available", desc:"Claim your daily credits to test features.", img:"https://picsum.photos/seed/u1/200/140"},
+      {title:"Signup Bonus Active", desc:"New accounts get an instant 200 credits (prototype).", img:"https://picsum.photos/seed/u2/200/140"},
+      {title:"Dashboard Refresh", desc:"Faster load and improved UI for prototypes.", img:"https://picsum.photos/seed/u3/200/140"},
+      {title:"UX Tips", desc:"Use Quick Demo to try everything without filling the form.", img:"https://picsum.photos/seed/u4/200/140"},
+    ];
+
+    function renderUpdates(){
+      const container = el('updatesList'); container.innerHTML='';
+      sampleUpdates.forEach(u=>{
+        const node = document.createElement('div'); node.className='update';
+        node.innerHTML = `<div class="thumb" style="background-image:url('${u.img}')"></div>
+          <div class="meta"><h4 style="margin:0 0 6px 0">${u.title}</h4><small class="muted">${u.desc}</small></div>`;
+        container.appendChild(node);
+      });
+    }
+    renderUpdates();
+
+    function saveState(){ localStorage.setItem(stateKey, JSON.stringify(state)); }
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(stateKey);
+        if(raw){ const s = JSON.parse(raw); state.name=s.name||null; state.email=s.email||null; state.credits=Number(s.credits||0); state.lastClaim=s.lastClaim||null; }
+      }catch(e){ console.warn(e) }
+    }
+    loadState();
+    updateUI();
+
+    // ---------- Registration ----------
+    const registerForm = document.querySelector('form.register');
+    registerForm.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const name = el('name').value.trim(), email = el('email').value.trim();
+      if(!name || !email){ toast('Please enter both name and email'); return; }
+      state.name = name; state.email = email;
+      state.credits = (state.credits||0) + 200; // instant signup credit
+      state.lastClaim = new Date().toISOString();
+      saveState(); updateUI();
+      animateSignup();
+      setTimeout(()=>alert('Signup complete — 200 credits added (prototype).'), 350);
+    });
+
+    el('demoLoginBtn').addEventListener('click', ()=>{
+      state.name = 'Demo User'; state.email = 'demo@example.com';
+      state.credits = (state.credits||0) + 200; state.lastClaim = new Date().toISOString();
+      saveState(); updateUI(); animateSignup(); setTimeout(()=>toast('Demo ready — 200 credits added'), 250);
+    });
+
+    // ---------- Claims & add credits ----------
+    el('claimBtn').addEventListener('click', ()=>{
+      if(!state.name){ toast('Please sign up first or use Quick Demo.'); return; }
+      const now = new Date();
+      if(state.lastClaim){
+        const last = new Date(state.lastClaim);
+        if(now - last < 24*3600*1000){ toast('Claim already used. Try again later.'); return; }
+      }
+      state.credits = (state.credits||0) + 200; state.lastClaim = now.toISOString(); saveState(); updateUI(); confettiBurst(); toast('You claimed 200 credits!');
+    });
+
+    el('addFundsBtn').addEventListener('click', ()=>{
+      if(!state.name){ toast('Please sign up first.'); return; }
+      state.credits = (state.credits||0) + 500; saveState(); updateUI(); toast('Added 500 credits (prototype).');
+    });
+
+    el('howBtn').addEventListener('click', ()=> alert('Quick tour:\\n1) Sign up or Quick Demo\\n2) Claim daily credits once per 24h\\n3) Add demo credits to test flows.'));
+
+    // ---------- UI helpers ----------
+    function updateUI(){
+      el('previewName').textContent = state.name ? `Hi, ${state.name}` : 'Welcome 👋';
+      el('previewEmail').textContent = state.email || 'Not signed in';
+      el('accName').textContent = state.name || '—';
+      el('balanceVal').textContent = `${state.credits||0} credits`;
+      el('lastClaim').textContent = state.lastClaim ? (new Date(state.lastClaim)).toLocaleString() : 'Never';
+      if(state.name){ el('registerForm').style.opacity = 0.85; }
+      else { el('registerForm').style.opacity = 1; }
+      // prefill fields
+      if(state.name) el('name').value = state.name;
+      if(state.email) el('email').value = state.email;
+    }
+
+    function toast(msg){
+      const t = document.createElement('div'); t.className='toast'; t.textContent=msg; document.body.appendChild(t);
+      setTimeout(()=>{ t.style.transition='opacity .5s'; t.style.opacity=0; }, 2000); setTimeout(()=>t.remove(),2600);
+    }
+
+    function animateSignup(){
+      el('hero').animate([{transform:'scale(1)'},{transform:'scale(1.02)'}],{duration:350,iterations:2,direction:'alternate'});
+      el('signupBtn').animate([{transform:'translateY(0)'},{transform:'translateY(-6px)'}],{duration:260,iterations:2,direction:'alternate'});
+    }
+
+    // ---------- Confetti ----------
+    const confettiCanvas = el('confettiCanvas'); const ctx = confettiCanvas.getContext && confettiCanvas.getContext('2d');
+    let confettiItems = []; function resizeCanvas(){ confettiCanvas.width=window.innerWidth; confettiCanvas.height=window.innerHeight; }
+    window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+    function confettiBurst(){ if(!ctx) return; const count=80, colors=['#ffca3a','#ff595e','#1982c4','#06b44b','#7f00ff']; for(let i=0;i<count;i++){
+      confettiItems.push({x:Math.random()*confettiCanvas.width,y:Math.random()*-confettiCanvas.height*0.3,vx:(Math.random()-0.5)*6,vy:Math.random()*6+2,size:Math.random()*8+4,color:colors[Math.floor(Math.random()*colors.length)],rot:Math.random()*360,vr:(Math.random()-0.5)*12,life:Math.random()*90+60});
+    } runConfetti(); }
+
+    let confettiRunning=false;
+    function runConfetti(){
+      if(confettiRunning) return; confettiRunning=true;
+      const id=setInterval(()=>{ ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+        for(let i=confettiItems.length-1;i>=0;i--){ const p=confettiItems[i]; p.x+=p.vx; p.y+=p.vy; p.vy+=0.12; p.rot+=p.vr; p.life--;
+          ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180); ctx.fillStyle=p.color; ctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*0.6); ctx.restore();
+          if(p.y>confettiCanvas.height+50||p.life<=0) confettiItems.splice(i,1);
+        }
+        if(confettiItems.length===0){ clearInterval(id); confettiRunning=false; ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height); }
+      },16);
+    }
+
+    // ---------- Init ----------
+    document.addEventListener('DOMContentLoaded', ()=>{
+      if(state.name) { el('name').value = state.name; el('email').value = state.email; }
+      const heroList = [
+        'https://images.unsplash.com/photo-1509475826633-fed577a2c71b?q=80&w=1400&auto=format&fit=crop&dpr=1',
+        'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=1400&auto=format&fit=crop&dpr=1',
+        'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?q=80&w=1400&auto=format&fit=crop&dpr=1'
+      ];
+      el('hero').style.backgroundImage = `url('${heroList[Math.floor(Math.random()*heroList.length)]}')`;
+    });
+
+    // Search filter
+    el('searchInput').addEventListener('input', (e)=>{
+      const q = e.target.value.trim().toLowerCase();
+      document.querySelectorAll('#updatesList .update').forEach(node=>{
+        node.style.display = node.innerText.toLowerCase().includes(q) ? 'flex' : 'none';
+      });
+    });
+
+    // quick reset helper for testing
+    window.resetDemo = function(){ localStorage.removeItem(stateKey); state.name=null; state.email=null; state.credits=0; state.lastClaim=null; updateUI(); toast('Prototype reset'); };
+
+    // expose state for dev
+    window.dani9jaState = state;
+
+  </script>
+</body>
+  </html>
